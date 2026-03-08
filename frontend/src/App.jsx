@@ -1,6 +1,7 @@
-
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+
+const API_URL = "https://teamflow-cohu.onrender.com";
 
 function App() {
 
@@ -36,7 +37,7 @@ function App() {
     const newStatus = result.destination.droppableId;
 
     const response = await fetch(
-      `http://localhost:8000/tasks/${taskId}`,
+      `${API_URL}/tasks/${taskId}`,
       {
         method: "PATCH",
         headers: {
@@ -60,7 +61,7 @@ function App() {
 
     e.preventDefault();
 
-    const response = await fetch("http://localhost:8000/login", {
+    const response = await fetch(`${API_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
@@ -86,7 +87,7 @@ function App() {
 
   const fetchProjects = async () => {
 
-    const response = await fetch("http://localhost:8000/projects/", {
+    const response = await fetch(`${API_URL}/projects/`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -102,7 +103,7 @@ function App() {
   const fetchTasks = async (projectId) => {
 
     const response = await fetch(
-      `http://localhost:8000/tasks/${projectId}`,
+      `${API_URL}/tasks/${projectId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -121,7 +122,7 @@ function App() {
 
     e.preventDefault();
 
-    const response = await fetch("http://localhost:8000/projects/", {
+    const response = await fetch(`${API_URL}/projects/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -149,7 +150,7 @@ function App() {
     if (!confirmDelete) return;
 
     const response = await fetch(
-      `http://localhost:8000/projects/${projectId}`,
+      `${API_URL}/projects/${projectId}`,
       {
         method: "DELETE",
         headers: {
@@ -171,7 +172,7 @@ function App() {
     e.preventDefault();
 
     const response = await fetch(
-      `http://localhost:8000/tasks/${selectedProject.id}`,
+      `${API_URL}/tasks/${selectedProject.id}`,
       {
         method: "POST",
         headers: {
@@ -199,7 +200,7 @@ function App() {
     e.stopPropagation();
 
     const response = await fetch(
-      `http://localhost:8000/tasks/${taskId}`,
+      `${API_URL}/tasks/${taskId}`,
       {
         method: "DELETE",
         headers: {
@@ -228,7 +229,7 @@ function App() {
   const saveTaskEdit = async () => {
 
     const response = await fetch(
-      `http://localhost:8000/tasks/${editingTask.id}`,
+      `${API_URL}/tasks/${editingTask.id}`,
       {
         method: "PATCH",
         headers: {
