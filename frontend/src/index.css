@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styling for the whole app */
+body {
+  @apply bg-gray-900 text-gray-100 min-h-screen;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+/* Headings */
+h1 {
+  @apply text-4xl font-bold mb-6;
+}
+
+h2 {
+  @apply text-2xl font-semibold mb-4;
+}
+
+h3 {
+  @apply text-xl font-semibold mb-3;
+}
+
+/* Buttons */
+button {
+  @apply px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition duration-200;
+}
+
+/* Inputs */
+input {
+  @apply px-3 py-2 rounded-md bg-gray-800 border border-gray-600 text-white w-full max-w-xs;
+}
+
+/* Lists */
+ul {
+  @apply mt-3;
+}
+
+li {
+  @apply mb-2;
+}
+
+/* Links */
+a {
+  @apply text-blue-400 hover:text-blue-300;
+}
