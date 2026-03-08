@@ -1,30 +1,38 @@
 from fastapi import FastAPI
-from .database import engine, Base
-from . import models
-from .routers import users, projects, tasks
 from fastapi.middleware.cors import CORSMiddleware
-app = FastAPI()
 
+from .database import engine
+from . import models
+from .routers import auth, users, projects, tasks
 
-app = FastAPI(title="TeamFlow API")
+models.Base.metadata.create_all(bind=engine)
 
-Base.metadata.create_all(bind=engine)
+app = FastAPI(
+    title="TeamFlow API",
+    description="TeamFlow Full Stack Project",
+    version="1.0"
+)
 
-app.include_router(users.router)
-app.include_router(projects.router)
-app.include_router(tasks.router)
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://teamflow-cohu.onrender.com",
+    "https://vercel.app",
+]
 
-
-@app.get("/")
-def home():
-    return {"message": "TeamFlow API running"}
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(projects.router)
+app.include_router(tasks.router)
+
+@app.get("/")
+def root():
+    return {"message": "TeamFlow API is running"}
