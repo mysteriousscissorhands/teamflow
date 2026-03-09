@@ -20,7 +20,11 @@ Features:
 - REST API with FastAPI
 - Swagger API testing
 
-Tech Stack:
-Frontend: React + Vite + Tailwind
-Backend: FastAPI + SQLAlchemy
-Database: SQLite
+Tech Stack
+- React
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- JWT Authentication
+- Render Deployment
+- Vercel Deployment
