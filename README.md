@@ -28,3 +28,7 @@ Tech Stack
 - JWT Authentication
 - Render Deployment
 - Vercel Deployment
+
+ Live Demo
+Frontend: https://teamflow-six-sigma.vercel.app  
+Backend API: https://teamflow-cohu.onrender.com/docs
