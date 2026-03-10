@@ -8,10 +8,11 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isRegister, setIsRegister] = useState(false);
+  const [message, setMessage] = useState("");
 
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
-
   const [selectedProject, setSelectedProject] = useState(null);
 
   const [newProjectName, setNewProjectName] = useState("");
@@ -19,42 +20,6 @@ function App() {
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
-
-  const [editingTask, setEditingTask] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editStatus, setEditStatus] = useState("todo");
-
-  const [message, setMessage] = useState("");
-
-
-
-  const handleDragEnd = async (result) => {
-
-    if (!result.destination) return;
-
-    const taskId = result.draggableId;
-    const newStatus = result.destination.droppableId;
-
-    const response = await fetch(
-      `${API_URL}/tasks/${taskId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          status: newStatus
-        })
-      }
-    );
-
-    if (response.ok) {
-      fetchTasks(selectedProject.id);
-    }
-  };
-
 
 
   const handleLogin = async (e) => {
@@ -84,6 +49,32 @@ function App() {
   };
 
 
+  const handleRegister = async (e) => {
+
+    e.preventDefault();
+
+    const response = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setMessage("Registration successful. Please login.");
+      setIsRegister(false);
+    } else {
+      setMessage(data.detail || "Registration failed");
+    }
+
+  };
+
 
   const fetchProjects = async () => {
 
@@ -99,23 +90,18 @@ function App() {
   };
 
 
-
   const fetchTasks = async (projectId) => {
 
-    const response = await fetch(
-      `${API_URL}/tasks/${projectId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+    const response = await fetch(`${API_URL}/tasks/${projectId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    );
+    });
 
     const data = await response.json();
 
     if (response.ok) setTasks(data);
   };
-
 
 
   const handleCreateProject = async (e) => {
@@ -142,49 +128,21 @@ function App() {
   };
 
 
-
-  const deleteProject = async (projectId) => {
-
-    const confirmDelete = window.confirm("Delete this project?");
-
-    if (!confirmDelete) return;
-
-    const response = await fetch(
-      `${API_URL}/projects/${projectId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
-
-    if (response.ok) {
-      fetchProjects();
-      setSelectedProject(null);
-    }
-  };
-
-
-
   const handleCreateTask = async (e) => {
 
     e.preventDefault();
 
-    const response = await fetch(
-      `${API_URL}/tasks/${selectedProject.id}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: newTaskTitle,
-          description: newTaskDescription
-        })
-      }
-    );
+    const response = await fetch(`${API_URL}/tasks/${selectedProject.id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        title: newTaskTitle,
+        description: newTaskDescription
+      })
+    });
 
     if (response.ok) {
       setNewTaskTitle("");
@@ -194,86 +152,53 @@ function App() {
   };
 
 
+  const handleDragEnd = async (result) => {
 
-  const deleteTask = async (taskId, e) => {
+    if (!result.destination) return;
 
-    e.stopPropagation();
+    const taskId = result.draggableId;
+    const newStatus = result.destination.droppableId;
 
-    const response = await fetch(
-      `${API_URL}/tasks/${taskId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
+    const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        status: newStatus
+      })
+    });
 
     if (response.ok) {
       fetchTasks(selectedProject.id);
     }
   };
-
-
-
-  const openEditModal = (task) => {
-
-    setEditingTask(task);
-    setEditTitle(task.title);
-    setEditDescription(task.description || "");
-    setEditStatus(task.status);
-  };
-
-
-
-  const saveTaskEdit = async () => {
-
-    const response = await fetch(
-      `${API_URL}/tasks/${editingTask.id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: editTitle,
-          description: editDescription,
-          status: editStatus
-        })
-      }
-    );
-
-    if (response.ok) {
-      setEditingTask(null);
-      fetchTasks(selectedProject.id);
-    }
-  };
-
 
 
   const handleLogout = () => {
 
     localStorage.removeItem("token");
-
     setToken(null);
     setProjects([]);
-    setSelectedProject(null);
     setTasks([]);
+    setSelectedProject(null);
+
   };
 
 
-
   useEffect(() => {
+
     if (token) fetchProjects();
+
   }, [token]);
 
 
-
   useEffect(() => {
-    if (selectedProject) fetchTasks(selectedProject.id);
-  }, [selectedProject]);
 
+    if (selectedProject) fetchTasks(selectedProject.id);
+
+  }, [selectedProject]);
 
 
   if (!token) {
@@ -285,10 +210,10 @@ function App() {
         <div className="bg-gray-800 p-10 rounded-lg shadow-lg w-96">
 
           <h1 className="text-3xl font-bold mb-6 text-center">
-            TeamFlow Login
+            {isRegister ? "Register" : "TeamFlow Login"}
           </h1>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-4">
 
             <input
               type="email"
@@ -312,12 +237,21 @@ function App() {
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-500 p-2 rounded"
             >
-              Login
+              {isRegister ? "Register" : "Login"}
             </button>
 
           </form>
 
           <p className="mt-4 text-red-400">{message}</p>
+
+          <p
+            className="mt-4 text-sm text-blue-400 cursor-pointer"
+            onClick={()=>setIsRegister(!isRegister)}
+          >
+            {isRegister
+              ? "Already have an account? Login"
+              : "Don't have an account? Register"}
+          </p>
 
         </div>
 
@@ -325,15 +259,6 @@ function App() {
 
     );
   }
-
-
-
-  const getColumnTitle = (status) => {
-    if (status === "todo") return "To Do";
-    if (status === "in_progress") return "In Progress";
-    if (status === "done") return "Completed";
-  };
-
 
 
   return (
@@ -360,32 +285,20 @@ function App() {
         <ul className="space-y-2">
 
           {projects.map((project)=>(
+
             <li
               key={project.id}
-              className="flex justify-between items-center p-2 rounded hover:bg-gray-700"
+              className="cursor-pointer p-2 rounded hover:bg-gray-700"
+              onClick={()=>setSelectedProject(project)}
             >
-
-              <span
-                className="cursor-pointer"
-                onClick={()=>setSelectedProject(project)}
-              >
-                {project.name}
-              </span>
-
-              <button
-                onClick={()=>deleteProject(project.id)}
-                className="text-red-400 hover:text-red-300"
-              >
-                🗑
-              </button>
-
+              {project.name}
             </li>
+
           ))}
 
         </ul>
 
       </div>
-
 
 
       <div className="flex-1 p-10">
@@ -434,14 +347,12 @@ function App() {
               onClick={()=>setSelectedProject(null)}
               className="mb-4 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded"
             >
-              ⬅ Back
+              Back
             </button>
 
             <h2 className="text-3xl font-bold mb-6">
               {selectedProject.name}
             </h2>
-
-
 
             <form onSubmit={handleCreateTask} className="mb-6 space-y-3 max-w-md">
 
@@ -471,14 +382,6 @@ function App() {
 
             </form>
 
-
-
-            <h3 className="text-xl font-semibold mb-4">
-              Kanban Board
-            </h3>
-
-
-
             <DragDropContext onDragEnd={handleDragEnd}>
 
               <div className="flex gap-8">
@@ -496,7 +399,7 @@ function App() {
                       >
 
                         <h3 className="font-semibold mb-4">
-                          {getColumnTitle(status)}
+                          {status}
                         </h3>
 
                         {tasks
@@ -515,8 +418,7 @@ function App() {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  onClick={()=>openEditModal(task)}
-                                  className="bg-gray-700 p-3 rounded mb-3 shadow cursor-pointer"
+                                  className="bg-gray-700 p-3 rounded mb-3"
                                 >
 
                                   <div className="font-semibold">
@@ -526,13 +428,6 @@ function App() {
                                   <div className="text-sm text-gray-300">
                                     {task.description}
                                   </div>
-
-                                  <button
-                                    onClick={(e)=>deleteTask(task.id,e)}
-                                    className="mt-2 bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-sm"
-                                  >
-                                    Delete
-                                  </button>
 
                                 </div>
 
@@ -564,6 +459,7 @@ function App() {
     </div>
 
   );
+
 }
 
 export default App;
