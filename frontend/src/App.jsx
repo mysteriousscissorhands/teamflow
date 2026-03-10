@@ -15,12 +15,14 @@ function App() {
   const [selectedProject, setSelectedProject] = useState(null);
 
   const [newProjectName, setNewProjectName] = useState("");
-  const [newProjectDescription, setNewProjectDescription] = "";
+  const [newProjectDescription, setNewProjectDescription] = useState("");
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
 
   const [message, setMessage] = useState("");
+
+  /* ---------------- REGISTER ---------------- */
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -31,8 +33,8 @@ function App() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        email,
-        password
+        username: email,   // FIXED HERE
+        password: password
       })
     });
 
@@ -40,6 +42,7 @@ function App() {
 
     if (response.ok) {
 
+      // auto login
       const loginResponse = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: {
@@ -64,7 +67,10 @@ function App() {
     }
   };
 
+  /* ---------------- LOGIN ---------------- */
+
   const handleLogin = async (e) => {
+
     e.preventDefault();
 
     const response = await fetch(`${API_URL}/login`, {
@@ -89,6 +95,8 @@ function App() {
     }
   };
 
+  /* ---------------- FETCH PROJECTS ---------------- */
+
   const fetchProjects = async () => {
 
     const response = await fetch(`${API_URL}/projects/`, {
@@ -103,6 +111,8 @@ function App() {
       setProjects(data);
     }
   };
+
+  /* ---------------- FETCH TASKS ---------------- */
 
   const fetchTasks = async (projectId) => {
 
@@ -120,6 +130,8 @@ function App() {
       setTasks(data);
     }
   };
+
+  /* ---------------- CREATE PROJECT ---------------- */
 
   const handleCreateProject = async (e) => {
 
@@ -143,6 +155,8 @@ function App() {
       fetchProjects();
     }
   };
+
+  /* ---------------- CREATE TASK ---------------- */
 
   const handleCreateTask = async (e) => {
 
@@ -169,6 +183,8 @@ function App() {
     }
   };
 
+  /* ---------------- DELETE TASK ---------------- */
+
   const deleteTask = async (taskId) => {
 
     const response = await fetch(`${API_URL}/tasks/${taskId}`, {
@@ -182,6 +198,8 @@ function App() {
       fetchTasks(selectedProject.id);
     }
   };
+
+  /* ---------------- DRAG TASK ---------------- */
 
   const handleDragEnd = async (result) => {
 
@@ -206,6 +224,8 @@ function App() {
     }
   };
 
+  /* ---------------- LOGOUT ---------------- */
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     setToken(null);
@@ -214,6 +234,8 @@ function App() {
     setSelectedProject(null);
   };
 
+  /* ---------------- EFFECTS ---------------- */
+
   useEffect(() => {
     if (token) fetchProjects();
   }, [token]);
@@ -221,6 +243,8 @@ function App() {
   useEffect(() => {
     if (selectedProject) fetchTasks(selectedProject.id);
   }, [selectedProject]);
+
+  /* ---------------- LOGIN / REGISTER SCREEN ---------------- */
 
   if (!token) {
 
@@ -285,6 +309,8 @@ function App() {
     if (status === "in_progress") return "In Progress";
     if (status === "done") return "Completed";
   };
+
+  /* ---------------- MAIN DASHBOARD ---------------- */
 
   return (
 
