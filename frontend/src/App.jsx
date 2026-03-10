@@ -8,11 +8,12 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [isRegister, setIsRegister] = useState(false);
-  const [message, setMessage] = useState("");
 
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
+
   const [selectedProject, setSelectedProject] = useState(null);
 
   const [newProjectName, setNewProjectName] = useState("");
@@ -21,6 +22,49 @@ function App() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
 
+  const [message, setMessage] = useState("");
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    const response = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+
+      const loginResponse = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+          username: email,
+          password: password
+        })
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (loginResponse.ok) {
+        localStorage.setItem("token", loginData.access_token);
+        setToken(loginData.access_token);
+        setMessage("");
+      }
+
+    } else {
+      setMessage(data.detail || "Registration failed");
+    }
+  };
 
   const handleLogin = async (e) => {
 
@@ -48,34 +92,6 @@ function App() {
     }
   };
 
-
-  const handleRegister = async (e) => {
-
-    e.preventDefault();
-
-    const response = await fetch(`${API_URL}/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email: email,
-        password: password
-      })
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setMessage("Registration successful. Please login.");
-      setIsRegister(false);
-    } else {
-      setMessage(data.detail || "Registration failed");
-    }
-
-  };
-
-
   const fetchProjects = async () => {
 
     const response = await fetch(`${API_URL}/projects/`, {
@@ -89,7 +105,6 @@ function App() {
     if (response.ok) setProjects(data);
   };
 
-
   const fetchTasks = async (projectId) => {
 
     const response = await fetch(`${API_URL}/tasks/${projectId}`, {
@@ -102,7 +117,6 @@ function App() {
 
     if (response.ok) setTasks(data);
   };
-
 
   const handleCreateProject = async (e) => {
 
@@ -127,7 +141,6 @@ function App() {
     }
   };
 
-
   const handleCreateTask = async (e) => {
 
     e.preventDefault();
@@ -151,6 +164,17 @@ function App() {
     }
   };
 
+  const deleteTask = async (taskId) => {
+
+    const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) fetchTasks(selectedProject.id);
+  };
 
   const handleDragEnd = async (result) => {
 
@@ -159,7 +183,7 @@ function App() {
     const taskId = result.draggableId;
     const newStatus = result.destination.droppableId;
 
-    const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+    await fetch(`${API_URL}/tasks/${taskId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -170,36 +194,26 @@ function App() {
       })
     });
 
-    if (response.ok) {
-      fetchTasks(selectedProject.id);
-    }
+    fetchTasks(selectedProject.id);
   };
-
 
   const handleLogout = () => {
 
     localStorage.removeItem("token");
+
     setToken(null);
     setProjects([]);
     setTasks([]);
     setSelectedProject(null);
-
   };
 
-
   useEffect(() => {
-
     if (token) fetchProjects();
-
   }, [token]);
 
-
   useEffect(() => {
-
     if (selectedProject) fetchTasks(selectedProject.id);
-
   }, [selectedProject]);
-
 
   if (!token) {
 
@@ -245,21 +259,25 @@ function App() {
           <p className="mt-4 text-red-400">{message}</p>
 
           <p
-            className="mt-4 text-sm text-blue-400 cursor-pointer"
+            className="mt-4 text-blue-400 cursor-pointer"
             onClick={()=>setIsRegister(!isRegister)}
           >
             {isRegister
               ? "Already have an account? Login"
-              : "Don't have an account? Register"}
+              : "Create new account"}
           </p>
 
         </div>
 
       </div>
-
     );
   }
 
+  const getColumnTitle = (status) => {
+    if (status === "todo") return "To Do";
+    if (status === "in_progress") return "In Progress";
+    if (status === "done") return "Completed";
+  };
 
   return (
 
@@ -285,21 +303,18 @@ function App() {
         <ul className="space-y-2">
 
           {projects.map((project)=>(
-
             <li
               key={project.id}
-              className="cursor-pointer p-2 rounded hover:bg-gray-700"
+              className="p-2 rounded hover:bg-gray-700 cursor-pointer"
               onClick={()=>setSelectedProject(project)}
             >
               {project.name}
             </li>
-
           ))}
 
         </ul>
 
       </div>
-
 
       <div className="flex-1 p-10">
 
@@ -347,7 +362,7 @@ function App() {
               onClick={()=>setSelectedProject(null)}
               className="mb-4 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded"
             >
-              Back
+              ⬅ Back
             </button>
 
             <h2 className="text-3xl font-bold mb-6">
@@ -399,7 +414,7 @@ function App() {
                       >
 
                         <h3 className="font-semibold mb-4">
-                          {status}
+                          {getColumnTitle(status)}
                         </h3>
 
                         {tasks
@@ -418,7 +433,7 @@ function App() {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className="bg-gray-700 p-3 rounded mb-3"
+                                  className="bg-gray-700 p-3 rounded mb-3 shadow"
                                 >
 
                                   <div className="font-semibold">
@@ -428,6 +443,13 @@ function App() {
                                   <div className="text-sm text-gray-300">
                                     {task.description}
                                   </div>
+
+                                  <button
+                                    onClick={()=>deleteTask(task.id)}
+                                    className="mt-2 bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-sm"
+                                  >
+                                    Delete
+                                  </button>
 
                                 </div>
 
@@ -457,9 +479,7 @@ function App() {
       </div>
 
     </div>
-
   );
-
 }
 
 export default App;
