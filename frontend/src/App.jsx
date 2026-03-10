@@ -8,16 +8,14 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [isRegister, setIsRegister] = useState(false);
 
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
-
   const [selectedProject, setSelectedProject] = useState(null);
 
   const [newProjectName, setNewProjectName] = useState("");
-  const [newProjectDescription, setNewProjectDescription] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = "";
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
@@ -33,8 +31,8 @@ function App() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        email: email,
-        password: password
+        email,
+        password
       })
     });
 
@@ -67,7 +65,6 @@ function App() {
   };
 
   const handleLogin = async (e) => {
-
     e.preventDefault();
 
     const response = await fetch(`${API_URL}/login`, {
@@ -102,10 +99,14 @@ function App() {
 
     const data = await response.json();
 
-    if (response.ok) setProjects(data);
+    if (response.ok && Array.isArray(data)) {
+      setProjects(data);
+    }
   };
 
   const fetchTasks = async (projectId) => {
+
+    if (!projectId) return;
 
     const response = await fetch(`${API_URL}/tasks/${projectId}`, {
       headers: {
@@ -115,7 +116,9 @@ function App() {
 
     const data = await response.json();
 
-    if (response.ok) setTasks(data);
+    if (response.ok && Array.isArray(data)) {
+      setTasks(data);
+    }
   };
 
   const handleCreateProject = async (e) => {
@@ -145,6 +148,8 @@ function App() {
 
     e.preventDefault();
 
+    if (!selectedProject) return;
+
     const response = await fetch(`${API_URL}/tasks/${selectedProject.id}`, {
       method: "POST",
       headers: {
@@ -173,7 +178,9 @@ function App() {
       }
     });
 
-    if (response.ok) fetchTasks(selectedProject.id);
+    if (response.ok && selectedProject) {
+      fetchTasks(selectedProject.id);
+    }
   };
 
   const handleDragEnd = async (result) => {
@@ -194,13 +201,13 @@ function App() {
       })
     });
 
-    fetchTasks(selectedProject.id);
+    if (selectedProject) {
+      fetchTasks(selectedProject.id);
+    }
   };
 
   const handleLogout = () => {
-
     localStorage.removeItem("token");
-
     setToken(null);
     setProjects([]);
     setTasks([]);
